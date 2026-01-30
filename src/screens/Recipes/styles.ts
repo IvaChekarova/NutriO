@@ -6,18 +6,20 @@ export const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
+      backgroundColor: theme.colors.background,
       alignItems: 'center',
-      paddingHorizontal: 24,
+      justifyContent: 'center',
+      padding: 24,
     },
     title: {
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: '700',
       color: theme.colors.textPrimary,
-      marginBottom: 8,
+      marginBottom: 6,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: 14,
       color: theme.colors.textSecondary,
+      textAlign: 'center',
     },
   });

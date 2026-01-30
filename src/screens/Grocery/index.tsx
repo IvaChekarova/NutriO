@@ -2,20 +2,20 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import { useTheme } from '../../theme';
-import { useHomeLogic } from './logic';
+import { useGroceryLogic } from './logic';
 import { createStyles } from './styles';
 
-const HomeScreen = () => {
-  const { title, subtitle } = useHomeLogic();
+const GroceryScreen = () => {
+  useGroceryLogic();
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={styles.title}>Grocery</Text>
+      <Text style={styles.subtitle}>Generate lists from meal plans.</Text>
     </View>
   );
 };
 
-export default HomeScreen;
+export default GroceryScreen;

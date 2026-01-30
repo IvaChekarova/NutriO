@@ -2,20 +2,20 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import { useTheme } from '../../theme';
-import { useHomeLogic } from './logic';
+import { useRecipesLogic } from './logic';
 import { createStyles } from './styles';
 
-const HomeScreen = () => {
-  const { title, subtitle } = useHomeLogic();
+const RecipesScreen = () => {
+  useRecipesLogic();
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={styles.title}>Recipes</Text>
+      <Text style={styles.subtitle}>Suggestions by dietary preferences.</Text>
     </View>
   );
 };
 
-export default HomeScreen;
+export default RecipesScreen;

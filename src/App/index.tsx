@@ -2,20 +2,39 @@ import React from 'react';
 import { StatusBar, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import HomeScreen from '../screens/Home';
+import RootNavigator from '../navigation/RootNavigator';
+import SplashScreen from '../components/SplashScreen';
+import { ThemeProvider, useTheme } from '../theme';
 import { useAppLogic } from './logic';
 import { styles } from './styles';
 
 const App = () => {
-  const { statusBarStyle } = useAppLogic();
+  return (
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <AppContent />
+      </SafeAreaProvider>
+    </ThemeProvider>
+  );
+};
+
+const AppContent = () => {
+  const { statusBarStyle, isReady } = useAppLogic();
+  const { theme } = useTheme();
+
+  if (!isReady) {
+    return <SplashScreen />;
+  }
 
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar barStyle={statusBarStyle} />
-      <View style={styles.container}>
-        <HomeScreen />
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
+        <RootNavigator />
       </View>
-    </SafeAreaProvider>
+    </>
   );
 };
 

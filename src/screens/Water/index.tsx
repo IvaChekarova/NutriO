@@ -2,20 +2,20 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import { useTheme } from '../../theme';
-import { useHomeLogic } from './logic';
+import { useWaterLogic } from './logic';
 import { createStyles } from './styles';
 
-const HomeScreen = () => {
-  const { title, subtitle } = useHomeLogic();
+const WaterScreen = () => {
+  useWaterLogic();
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={styles.title}>Water</Text>
+      <Text style={styles.subtitle}>Hydration reminders and intake log.</Text>
     </View>
   );
 };
 
-export default HomeScreen;
+export default WaterScreen;
