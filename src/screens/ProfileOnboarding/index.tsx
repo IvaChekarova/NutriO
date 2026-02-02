@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useTheme } from '../../theme';
@@ -32,12 +34,15 @@ const ProfileOnboardingScreen = () => {
     birthYear,
     setBirthYear,
     birthdayError,
+    birthdayLabel,
     sex,
     setSex,
     heightCm,
     setHeightCm,
+    heightError,
     weightKg,
     setWeightKg,
+    weightError,
     sexOptions,
     activityLevel,
     setActivityLevel,
@@ -56,11 +61,12 @@ const ProfileOnboardingScreen = () => {
     error,
     handleNext,
     handleBack,
-    handleSkip,
     handleComplete,
+    normalizeMetricInput,
   } = useProfileOnboardingLogic(route.params.profileId);
 
   const step = steps[stepIndex];
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
 
   const renderFields = () => {
     switch (step.id) {
@@ -69,38 +75,12 @@ const ProfileOnboardingScreen = () => {
           <View style={styles.form}>
             <View style={styles.field}>
               <Text style={styles.label}>Birthday</Text>
-              <View style={styles.row}>
-                <TextInput
-                  value={birthDay}
-                  onChangeText={setBirthDay}
-                  placeholder="DD"
-                  placeholderTextColor={theme.colors.textSecondary}
-                  style={[styles.input, styles.inputSmall]}
-                  keyboardType="number-pad"
-                  keyboardAppearance="dark"
-                  maxLength={2}
-                />
-                <TextInput
-                  value={birthMonth}
-                  onChangeText={setBirthMonth}
-                  placeholder="MM"
-                  placeholderTextColor={theme.colors.textSecondary}
-                  style={[styles.input, styles.inputSmall]}
-                  keyboardType="number-pad"
-                  keyboardAppearance="dark"
-                  maxLength={2}
-                />
-                <TextInput
-                  value={birthYear}
-                  onChangeText={setBirthYear}
-                  placeholder="YYYY"
-                  placeholderTextColor={theme.colors.textSecondary}
-                  style={[styles.input, styles.inputWide]}
-                  keyboardType="number-pad"
-                  keyboardAppearance="dark"
-                  maxLength={4}
-                />
-              </View>
+              <Pressable
+                style={styles.input}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.inputText}>{birthdayLabel}</Text>
+              </Pressable>
               {birthdayError ? (
                 <Text style={styles.helper}>{birthdayError}</Text>
               ) : null}
@@ -108,25 +88,50 @@ const ProfileOnboardingScreen = () => {
             <View style={styles.field}>
               <Text style={styles.label}>Sex</Text>
               <View style={styles.tileRow}>
-                {sexOptions.map(option => (
-                  <Pressable
-                    key={option.id}
-                    style={[
-                      styles.tile,
-                      sex === option.id && styles.tileActive,
-                    ]}
-                    onPress={() => setSex(option.id)}
-                  >
-                    <Text
+                {sexOptions
+                  .filter(option => option.id !== 'na')
+                  .map(option => (
+                    <Pressable
+                      key={option.id}
                       style={[
-                        styles.tileText,
-                        sex === option.id && styles.tileTextActive,
+                        styles.tile,
+                        sex === option.id && styles.tileActive,
                       ]}
+                      onPress={() => setSex(option.id)}
                     >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={[
+                          styles.tileText,
+                          sex === option.id && styles.tileTextActive,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+              </View>
+              <View style={styles.tileRowCentered}>
+                {sexOptions
+                  .filter(option => option.id === 'na')
+                  .map(option => (
+                    <Pressable
+                      key={option.id}
+                      style={[
+                        styles.tile,
+                        sex === option.id && styles.tileActive,
+                      ]}
+                      onPress={() => setSex(option.id)}
+                    >
+                      <Text
+                        style={[
+                          styles.tileText,
+                          sex === option.id && styles.tileTextActive,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  ))}
               </View>
             </View>
           </View>
@@ -139,24 +144,32 @@ const ProfileOnboardingScreen = () => {
               <TextInput
                 value={heightCm}
                 onChangeText={setHeightCm}
+                onEndEditing={() => setHeightCm(normalizeMetricInput(heightCm))}
                 placeholder="e.g. 170"
                 placeholderTextColor={theme.colors.textSecondary}
                 style={styles.input}
                 keyboardType="decimal-pad"
                 keyboardAppearance="dark"
               />
+              {heightError ? (
+                <Text style={styles.helper}>{heightError}</Text>
+              ) : null}
             </View>
             <View style={styles.field}>
               <Text style={styles.label}>Weight (kg)</Text>
               <TextInput
                 value={weightKg}
                 onChangeText={setWeightKg}
+                onEndEditing={() => setWeightKg(normalizeMetricInput(weightKg))}
                 placeholder="e.g. 65"
                 placeholderTextColor={theme.colors.textSecondary}
                 style={styles.input}
                 keyboardType="decimal-pad"
                 keyboardAppearance="dark"
               />
+              {weightError ? (
+                <Text style={styles.helper}>{weightError}</Text>
+              ) : null}
             </View>
           </View>
         );
@@ -332,10 +345,10 @@ const ProfileOnboardingScreen = () => {
                   styles.buttonSecondary,
                   styles.navButton,
                 ]}
-                onPress={stepIndex === 0 ? handleSkip : handleBack}
+                onPress={handleBack}
               >
                 <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
-                  {stepIndex === 0 ? 'Skip for now' : 'Back'}
+                  Back
                 </Text>
               </Pressable>
 
@@ -350,16 +363,53 @@ const ProfileOnboardingScreen = () => {
               </Pressable>
             </View>
 
-            {stepIndex > 0 ? (
-              <Text style={styles.skip} onPress={handleSkip}>
-                Skip for now
-              </Text>
-            ) : null}
-
             {error ? <Text style={styles.helper}>{error}</Text> : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showDatePicker} transparent animationType="fade">
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowDatePicker(false)}
+        />
+        <View style={styles.modalSheet}>
+          <Text style={styles.modalTitle}>Select your birthday</Text>
+          <DateTimePicker
+            value={
+              birthDay && birthMonth && birthYear
+                ? new Date(
+                    Number.parseInt(birthYear, 10),
+                    Number.parseInt(birthMonth, 10) - 1,
+                    Number.parseInt(birthDay, 10),
+                  )
+                : new Date(2000, 0, 1)
+            }
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            maximumDate={new Date()}
+            minimumDate={new Date(1900, 0, 1)}
+            onChange={(event, date) => {
+              if (Platform.OS !== 'ios') {
+                setShowDatePicker(false);
+              }
+              if (date) {
+                setBirthDay(String(date.getDate()).padStart(2, '0'));
+                setBirthMonth(String(date.getMonth() + 1).padStart(2, '0'));
+                setBirthYear(String(date.getFullYear()));
+              }
+            }}
+          />
+          {Platform.OS === 'ios' ? (
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Text style={styles.modalButtonText}>Done</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

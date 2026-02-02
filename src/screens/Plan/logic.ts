@@ -1,7 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { addMealItem, getMealItemsForPlan, getOrCreateMealPlan, updateMealItem } from '../../data';
+import {
+  addMealItem,
+  deleteMealItem,
+  getMealItemsForPlan,
+  getOrCreateMealPlan,
+  getProfileById,
+  getSession,
+  updateMealItem,
+} from '../../data';
 import { MealItemForm } from '../../components/MealItemModal/logic';
+import { calculateDailyCalories } from '../../utils/nutrition';
+import { subscribeMealPlanChange } from '../../utils/mealPlanEvents';
 
 type SummaryItem = {
   id: string;
@@ -18,7 +28,11 @@ type MealItem = {
   carbs: number;
   fat: number;
   mealType: string;
+  type: string;
   servings: number;
+  servingUnit: string;
+  baseAmount: number;
+  baseUnit: string;
 };
 
 type MealSection = {
@@ -41,6 +55,7 @@ export const usePlanLogic = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MealItem | null>(null);
   const [modalMealType, setModalMealType] = useState('breakfast');
+  const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
 
   const dateLabel = useMemo(() => {
     return selectedDate.toLocaleDateString(undefined, {
@@ -54,6 +69,13 @@ export const usePlanLogic = () => {
     let isActive = true;
     const load = async () => {
       const plan = await getOrCreateMealPlan(selectedDate);
+      if (!plan) {
+        if (isActive) {
+          setPlanId(null);
+          setItems([]);
+        }
+        return;
+      }
       const mealItems = await getMealItemsForPlan(plan.id);
       if (isActive) {
         setPlanId(plan.id);
@@ -66,7 +88,11 @@ export const usePlanLogic = () => {
             carbs: item.carbs,
             fat: item.fat,
             mealType: item.meal_type,
+            type: item.type,
             servings: item.servings,
+            servingUnit: item.serving_unit ?? 'g',
+            baseAmount: item.base_amount ?? 0,
+            baseUnit: item.base_unit ?? 'g',
           })),
         );
       }
@@ -78,6 +104,35 @@ export const usePlanLogic = () => {
       isActive = false;
     };
   }, [selectedDate]);
+
+  useEffect(() => {
+    let isActive = true;
+    const loadProfile = async () => {
+      const session = await getSession();
+      if (!session.profileId) {
+        return;
+      }
+      const profile = await getProfileById(session.profileId);
+      if (!profile || !isActive) {
+        return;
+      }
+      const result = calculateDailyCalories({
+        weightKg: profile.weight_kg ?? undefined,
+        heightCm: profile.height_cm ?? undefined,
+        age: profile.age ?? undefined,
+        sex: (profile.sex as 'male' | 'female' | 'na' | null) ?? undefined,
+        activityLevel: profile.activity_level ?? undefined,
+        goalText: profile.goal ?? undefined,
+      });
+      setCalorieGoal(result?.target ?? null);
+    };
+
+    loadProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const totals = useMemo(() => {
     return items.reduce(
@@ -93,13 +148,55 @@ export const usePlanLogic = () => {
 
   const summary = useMemo<SummaryItem[]>(
     () => [
-      { id: 'calories', label: 'Calories', value: `${totals.calories}`, unit: 'kcal' },
-      { id: 'protein', label: 'Protein', value: `${totals.protein}`, unit: 'g' },
+      {
+        id: 'calories',
+        label: 'Calories',
+        value: `${totals.calories}`,
+        unit: 'kcal',
+      },
+      {
+        id: 'protein',
+        label: 'Protein',
+        value: `${totals.protein}`,
+        unit: 'g',
+      },
       { id: 'carbs', label: 'Carbs', value: `${totals.carbs}`, unit: 'g' },
       { id: 'fat', label: 'Fat', value: `${totals.fat}`, unit: 'g' },
     ],
     [totals],
   );
+
+  const macroBreakdown = useMemo(() => {
+    const totalGrams = totals.protein + totals.carbs + totals.fat;
+    if (!totalGrams) {
+      return [
+        { id: 'protein', label: 'Protein', value: totals.protein, percent: 0 },
+        { id: 'carbs', label: 'Carbs', value: totals.carbs, percent: 0 },
+        { id: 'fat', label: 'Fat', value: totals.fat, percent: 0 },
+      ];
+    }
+
+    return [
+      {
+        id: 'protein',
+        label: 'Protein',
+        value: totals.protein,
+        percent: totals.protein / totalGrams,
+      },
+      {
+        id: 'carbs',
+        label: 'Carbs',
+        value: totals.carbs,
+        percent: totals.carbs / totalGrams,
+      },
+      {
+        id: 'fat',
+        label: 'Fat',
+        value: totals.fat,
+        percent: totals.fat / totalGrams,
+      },
+    ];
+  }, [totals]);
 
   const sections = useMemo<MealSection[]>(
     () => [
@@ -107,21 +204,49 @@ export const usePlanLogic = () => {
         id: 'breakfast',
         title: 'Breakfast',
         mealType: 'breakfast',
+        totalCalories: 0,
+        totalMacros: {
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
+        items: [],
       },
       {
         id: 'lunch',
         title: 'Lunch',
         mealType: 'lunch',
+        totalCalories: 0,
+        totalMacros: {
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
+        items: [],
       },
       {
         id: 'dinner',
         title: 'Dinner',
         mealType: 'dinner',
+        totalCalories: 0,
+        totalMacros: {
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
+        items: [],
       },
       {
         id: 'snacks',
         title: 'Snacks',
         mealType: 'snack',
+        totalCalories: 0,
+        totalMacros: {
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
+        items: [],
       },
     ],
     [],
@@ -154,7 +279,7 @@ export const usePlanLogic = () => {
     });
   }, [items, sections]);
 
-  const refreshItems = async () => {
+  const refreshItems = useCallback(async () => {
     if (!planId) {
       return;
     }
@@ -169,10 +294,24 @@ export const usePlanLogic = () => {
         carbs: item.carbs,
         fat: item.fat,
         mealType: item.meal_type,
+        type: item.type,
         servings: item.servings,
+        servingUnit: item.serving_unit ?? 'g',
+        baseAmount: item.base_amount ?? 0,
+        baseUnit: item.base_unit ?? 'g',
       })),
     );
-  };
+  }, [planId]);
+
+  useEffect(() => {
+    if (!planId) {
+      return;
+    }
+
+    return subscribeMealPlanChange(() => {
+      refreshItems();
+    });
+  }, [planId, refreshItems]);
 
   const openAddModal = (mealType: string) => {
     setEditingItem(null);
@@ -199,7 +338,16 @@ export const usePlanLogic = () => {
         carbs: String(editingItem.carbs),
         fat: String(editingItem.fat),
         servings: String(editingItem.servings),
+        servingUnit: editingItem.servingUnit ?? 'g',
         mealType: editingItem.mealType,
+        itemType: editingItem.type ?? 'manual',
+        servingSizeG: editingItem.baseAmount
+          ? String(editingItem.baseAmount)
+          : '',
+        baseAmount: editingItem.baseAmount
+          ? String(editingItem.baseAmount)
+          : '0',
+        baseUnit: editingItem.baseUnit ?? 'g',
       };
     }
 
@@ -210,7 +358,12 @@ export const usePlanLogic = () => {
       carbs: '',
       fat: '',
       servings: '1',
+      servingUnit: 'g',
       mealType: modalMealType,
+      itemType: 'manual',
+      servingSizeG: '',
+      baseAmount: '0',
+      baseUnit: 'g',
     };
   }, [editingItem, modalMealType]);
 
@@ -221,12 +374,16 @@ export const usePlanLogic = () => {
 
     const payload = {
       mealType: values.mealType,
+      type: values.itemType || 'manual',
       name: values.name.trim(),
       calories: Number.parseFloat(values.calories) || 0,
       protein: Number.parseFloat(values.protein) || 0,
       carbs: Number.parseFloat(values.carbs) || 0,
       fat: Number.parseFloat(values.fat) || 0,
       servings: Number.parseFloat(values.servings) || 1,
+      servingUnit: values.servingUnit || 'g',
+      baseAmount: Number.parseFloat(values.baseAmount || '0') || 0,
+      baseUnit: values.baseUnit || 'g',
     };
 
     if (editingItem) {
@@ -245,6 +402,11 @@ export const usePlanLogic = () => {
     setIsModalOpen(false);
   };
 
+  const handleDelete = async (id: string) => {
+    await deleteMealItem(id);
+    await refreshItems();
+  };
+
   const shiftDate = (direction: 'prev' | 'next') => {
     setSelectedDate(current => {
       const next = new Date(current);
@@ -256,6 +418,7 @@ export const usePlanLogic = () => {
   return {
     dateLabel,
     summary,
+    macroBreakdown,
     sections: sectionsWithItems,
     shiftDate,
     isModalOpen,
@@ -266,5 +429,7 @@ export const usePlanLogic = () => {
     openEditModal,
     closeModal,
     handleSave,
+    handleDelete,
+    calorieGoal,
   } as const;
 };

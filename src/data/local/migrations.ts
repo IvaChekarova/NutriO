@@ -62,6 +62,10 @@ const migrateToV1 = async (db: SQLiteDatabase) => {
       cook_time_min INTEGER,
       difficulty TEXT,
       image_url TEXT,
+      total_calories REAL NOT NULL DEFAULT 0,
+      total_protein REAL NOT NULL DEFAULT 0,
+      total_carbs REAL NOT NULL DEFAULT 0,
+      total_fat REAL NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );`,
@@ -95,6 +99,16 @@ const migrateToV1 = async (db: SQLiteDatabase) => {
   );
 
   await db.executeSql(
+    `CREATE TABLE IF NOT EXISTS ${schema.tables.recipe_steps} (
+      id TEXT PRIMARY KEY NOT NULL,
+      recipe_id TEXT NOT NULL,
+      step_number INTEGER NOT NULL,
+      instruction TEXT NOT NULL,
+      FOREIGN KEY(recipe_id) REFERENCES ${schema.tables.recipes}(id)
+    );`,
+  );
+
+  await db.executeSql(
     `CREATE TABLE IF NOT EXISTS ${schema.tables.meal_plans} (
       id TEXT PRIMARY KEY NOT NULL,
       date TEXT NOT NULL,
@@ -116,6 +130,7 @@ const migrateToV1 = async (db: SQLiteDatabase) => {
       carbs REAL NOT NULL DEFAULT 0,
       fat REAL NOT NULL DEFAULT 0,
       servings REAL NOT NULL DEFAULT 1,
+      serving_unit TEXT NOT NULL DEFAULT 'g',
       FOREIGN KEY(meal_plan_id) REFERENCES ${schema.tables.meal_plans}(id)
     );`,
   );
@@ -162,11 +177,207 @@ const migrateToV1 = async (db: SQLiteDatabase) => {
   );
 };
 
+const hasColumn = async (db: SQLiteDatabase, table: string, column: string) => {
+  const [result] = await db.executeSql(`PRAGMA table_info(${table});`);
+  for (let i = 0; i < result.rows.length; i += 1) {
+    const row = result.rows.item(i);
+    if (row?.name === column) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const migrateToV2 = async (db: SQLiteDatabase) => {
+  const exists = await hasColumn(db, schema.tables.meal_items, 'serving_unit');
+  if (exists) {
+    return;
+  }
+  await db.executeSql(
+    `ALTER TABLE ${schema.tables.meal_items}
+     ADD COLUMN serving_unit TEXT NOT NULL DEFAULT 'g';`,
+  );
+};
+
+const migrateToV3 = async (db: SQLiteDatabase) => {
+  await db.executeSql(
+    `CREATE TABLE IF NOT EXISTS ${schema.tables.custom_foods} (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      serving_size_g REAL NOT NULL,
+      calories REAL NOT NULL DEFAULT 0,
+      protein REAL NOT NULL DEFAULT 0,
+      carbs REAL NOT NULL DEFAULT 0,
+      fat REAL NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );`,
+  );
+};
+
+const migrateToV4 = async (db: SQLiteDatabase) => {
+  const hasBaseAmount = await hasColumn(
+    db,
+    schema.tables.meal_items,
+    'base_amount',
+  );
+  if (!hasBaseAmount) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.meal_items}
+       ADD COLUMN base_amount REAL NOT NULL DEFAULT 0;`,
+    );
+  }
+
+  const hasBaseUnit = await hasColumn(
+    db,
+    schema.tables.meal_items,
+    'base_unit',
+  );
+  if (!hasBaseUnit) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.meal_items}
+       ADD COLUMN base_unit TEXT NOT NULL DEFAULT 'g';`,
+    );
+  }
+};
+
+const migrateToV5 = async (db: SQLiteDatabase) => {
+  await db.executeSql(
+    `CREATE TABLE IF NOT EXISTS ${schema.tables.recipe_steps} (
+      id TEXT PRIMARY KEY NOT NULL,
+      recipe_id TEXT NOT NULL,
+      step_number INTEGER NOT NULL,
+      instruction TEXT NOT NULL,
+      FOREIGN KEY(recipe_id) REFERENCES ${schema.tables.recipes}(id)
+    );`,
+  );
+};
+
+const migrateToV6 = async (db: SQLiteDatabase) => {
+  const hasTotalCalories = await hasColumn(
+    db,
+    schema.tables.recipes,
+    'total_calories',
+  );
+  if (!hasTotalCalories) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.recipes}
+       ADD COLUMN total_calories REAL NOT NULL DEFAULT 0;`,
+    );
+  }
+
+  const hasTotalProtein = await hasColumn(
+    db,
+    schema.tables.recipes,
+    'total_protein',
+  );
+  if (!hasTotalProtein) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.recipes}
+       ADD COLUMN total_protein REAL NOT NULL DEFAULT 0;`,
+    );
+  }
+
+  const hasTotalCarbs = await hasColumn(
+    db,
+    schema.tables.recipes,
+    'total_carbs',
+  );
+  if (!hasTotalCarbs) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.recipes}
+       ADD COLUMN total_carbs REAL NOT NULL DEFAULT 0;`,
+    );
+  }
+
+  const hasTotalFat = await hasColumn(db, schema.tables.recipes, 'total_fat');
+  if (!hasTotalFat) {
+    await db.executeSql(
+      `ALTER TABLE ${schema.tables.recipes}
+       ADD COLUMN total_fat REAL NOT NULL DEFAULT 0;`,
+    );
+  }
+};
+
+const migrateToV7 = async (db: SQLiteDatabase) => {
+  const addProfileId = async (table: string) => {
+    const exists = await hasColumn(db, table, 'profile_id');
+    if (!exists) {
+      await db.executeSql(
+        `ALTER TABLE ${table}
+         ADD COLUMN profile_id TEXT;`,
+      );
+    }
+  };
+
+  await addProfileId(schema.tables.meal_plans);
+  await addProfileId(schema.tables.water_logs);
+  await addProfileId(schema.tables.macro_logs);
+  await addProfileId(schema.tables.custom_foods);
+  await addProfileId(schema.tables.grocery_items);
+
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.meal_plans} WHERE profile_id IS NULL;`,
+  );
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.meal_items}
+     WHERE meal_plan_id NOT IN (SELECT id FROM ${schema.tables.meal_plans});`,
+  );
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.water_logs} WHERE profile_id IS NULL;`,
+  );
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.macro_logs} WHERE profile_id IS NULL;`,
+  );
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.custom_foods} WHERE profile_id IS NULL;`,
+  );
+  await db.executeSql(
+    `DELETE FROM ${schema.tables.grocery_items} WHERE profile_id IS NULL;`,
+  );
+};
+
 export const runMigrations = async (db: SQLiteDatabase) => {
   const currentVersion = await getSchemaVersion(db);
 
   if (currentVersion < 1) {
     await migrateToV1(db);
-    await setSchemaVersion(db, 1);
+    await migrateToV2(db);
+    await migrateToV3(db);
+    await migrateToV4(db);
+    await migrateToV5(db);
+    await migrateToV6(db);
+    await migrateToV7(db);
+    await setSchemaVersion(db, 7);
+    return;
+  }
+
+  if (currentVersion < 2) {
+    await migrateToV2(db);
+    await setSchemaVersion(db, 2);
+  }
+
+  if (currentVersion < 3) {
+    await migrateToV3(db);
+    await setSchemaVersion(db, 3);
+  }
+
+  if (currentVersion < 4) {
+    await migrateToV4(db);
+    await setSchemaVersion(db, 4);
+  }
+
+  if (currentVersion < 5) {
+    await migrateToV5(db);
+    await setSchemaVersion(db, 5);
+  }
+
+  if (currentVersion < 6) {
+    await migrateToV6(db);
+    await setSchemaVersion(db, 6);
+  }
+
+  if (currentVersion < 7) {
+    await migrateToV7(db);
+    await setSchemaVersion(db, 7);
   }
 };

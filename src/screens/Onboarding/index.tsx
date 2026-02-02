@@ -20,13 +20,8 @@ const OnboardingScreen = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const {
-    data,
-    listRef,
-    activeIndex,
-    handleNext,
-    onViewableItemsChanged,
-  } = useOnboardingLogic();
+  const { data, listRef, activeIndex, handleNext, onViewableItemsChanged } =
+    useOnboardingLogic();
 
   const isLast = activeIndex === data.length - 1;
 
@@ -75,10 +70,7 @@ const OnboardingScreen = () => {
           {data.map((item, index) => (
             <View
               key={item.id}
-              style={[
-                styles.dot,
-                index === activeIndex && styles.dotActive,
-              ]}
+              style={[styles.dot, index === activeIndex && styles.dotActive]}
             />
           ))}
         </View>

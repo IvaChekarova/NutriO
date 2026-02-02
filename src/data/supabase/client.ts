@@ -5,8 +5,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../../config/supabase';
 
 let client: SupabaseClient | null = null;
 
-const isConfigured = () =>
-  Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+const isConfigured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 export const getSupabaseClient = () => {
   if (!isConfigured()) {

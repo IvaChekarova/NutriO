@@ -147,11 +147,12 @@ const RegisterScreen = () => {
                           styles.strengthFill,
                           {
                             width: strengthWidth,
-                            backgroundColor: passwordStrength.label === 'Strong'
-                              ? theme.colors.primary
-                              : passwordStrength.label === 'Moderate'
-                                ? theme.colors.accent
-                                : theme.colors.textSecondary,
+                            backgroundColor:
+                              passwordStrength.label === 'Strong'
+                                ? theme.colors.primary
+                                : passwordStrength.label === 'Moderate'
+                                  ? theme.colors.accent
+                                  : theme.colors.textSecondary,
                           },
                         ]}
                       />
@@ -160,7 +161,8 @@ const RegisterScreen = () => {
                       {passwordStrength.label}
                     </Text>
                   </View>
-                  {password.length > 0 && passwordStrength.label !== 'Strong' ? (
+                  {password.length > 0 &&
+                  passwordStrength.label !== 'Strong' ? (
                     <View style={styles.tips}>
                       {passwordStrength.tips.slice(0, 3).map(tip => (
                         <Text key={tip} style={styles.tipText}>

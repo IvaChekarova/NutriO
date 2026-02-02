@@ -75,6 +75,10 @@ export const createStyles = (theme: Theme) =>
       fontSize: 16,
       color: theme.colors.textPrimary,
     },
+    inputText: {
+      fontSize: 16,
+      color: theme.colors.textPrimary,
+    },
     inputSmall: {
       flex: 1,
       textAlign: 'center',
@@ -90,6 +94,11 @@ export const createStyles = (theme: Theme) =>
     tileRow: {
       flexDirection: 'row',
       gap: 10,
+    },
+    tileRowCentered: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 10,
     },
     tileGrid: {
       flexDirection: 'row',
@@ -196,6 +205,37 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.accent,
       fontSize: 12,
       marginTop: 6,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    modalSheet: {
+      backgroundColor: theme.colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 20,
+    },
+    modalTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: theme.colors.textPrimary,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    modalButton: {
+      alignSelf: 'center',
+      marginTop: 12,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 999,
+      backgroundColor: theme.colors.primary,
+    },
+    modalButtonText: {
+      color: '#FFFFFF',
+      fontWeight: '700',
     },
     skip: {
       alignSelf: 'center',

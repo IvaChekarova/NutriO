@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { initDatabase } from '../data';
+import { ensureRecipeMacros, initDatabase, seedRecipesIfNeeded } from '../data';
 import { useTheme } from '../theme';
 
 export const useAppLogic = () => {
@@ -14,6 +14,8 @@ export const useAppLogic = () => {
 
     const prepare = async () => {
       await initDatabase();
+      await seedRecipesIfNeeded();
+      await ensureRecipeMacros();
 
       const elapsed = Date.now() - start;
       const remaining = Math.max(minDelay - elapsed, 0);

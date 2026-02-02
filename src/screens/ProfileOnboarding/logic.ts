@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState } from 'react';
 
 import { setSession, updateProfile } from '../../data';
@@ -201,6 +202,17 @@ export const useProfileOnboardingLogic = (profileId: string) => {
     [birthDay, birthMonth, birthYear],
   );
 
+  const birthdayLabel = useMemo(() => {
+    if (!birthdayDate) {
+      return 'Select date';
+    }
+    return birthdayDate.toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }, [birthdayDate]);
+
   const birthdayTouched = birthDay || birthMonth || birthYear;
   const birthdayError = useMemo(() => {
     if (!birthdayTouched) {
@@ -208,6 +220,42 @@ export const useProfileOnboardingLogic = (profileId: string) => {
     }
     return birthdayDate ? '' : 'Enter a valid birthday.';
   }, [birthdayTouched, birthdayDate]);
+
+  const heightError = useMemo(() => {
+    if (!heightCm) {
+      return '';
+    }
+    const normalized = normalizeMetricInput(heightCm);
+    if (normalized.includes('.') && !/^\d+\.\d+$/.test(normalized)) {
+      return 'Enter a valid height.';
+    }
+    const value = Number.parseFloat(normalized);
+    if (Number.isNaN(value)) {
+      return 'Enter a valid height.';
+    }
+    if (value < 120 || value > 230) {
+      return 'Height must be between 120 and 230 cm.';
+    }
+    return '';
+  }, [heightCm, normalizeMetricInput]);
+
+  const weightError = useMemo(() => {
+    if (!weightKg) {
+      return '';
+    }
+    const normalized = normalizeMetricInput(weightKg);
+    if (normalized.includes('.') && !/^\d+\.\d+$/.test(normalized)) {
+      return 'Enter a valid weight.';
+    }
+    const value = Number.parseFloat(normalized);
+    if (Number.isNaN(value)) {
+      return 'Enter a valid weight.';
+    }
+    if (value < 35 || value > 250) {
+      return 'Weight must be between 35 and 250 kg.';
+    }
+    return '';
+  }, [weightKg, normalizeMetricInput]);
 
   const selectedGoalLabels = useMemo(() => {
     const labels = selectedGoals
@@ -249,6 +297,10 @@ export const useProfileOnboardingLogic = (profileId: string) => {
       setError(birthdayError);
       return;
     }
+    if (heightError || weightError) {
+      setError(heightError || weightError);
+      return;
+    }
 
     if (selectedGoals.includes('custom') && !customGoal.trim()) {
       setError('Add a custom goal or deselect it.');
@@ -259,8 +311,14 @@ export const useProfileOnboardingLogic = (profileId: string) => {
     setError('');
 
     const parsedAge = birthdayDate ? getAgeFromDate(birthdayDate) : null;
-    const parsedHeight = heightCm ? Number.parseFloat(heightCm) : null;
-    const parsedWeight = weightKg ? Number.parseFloat(weightKg) : null;
+    const normalizedHeight = normalizeMetricInput(heightCm);
+    const normalizedWeight = normalizeMetricInput(weightKg);
+    const parsedHeight = normalizedHeight
+      ? Number.parseFloat(normalizedHeight)
+      : null;
+    const parsedWeight = normalizedWeight
+      ? Number.parseFloat(normalizedWeight)
+      : null;
 
     try {
       await updateProfile({
@@ -296,12 +354,15 @@ export const useProfileOnboardingLogic = (profileId: string) => {
     birthYear,
     setBirthYear,
     birthdayError,
+    birthdayLabel,
+    heightError,
+    weightError,
     sex,
     setSex,
     heightCm,
-    setHeightCm,
+    setHeightCm: (value: string) => setHeightCm(sanitizeMetricInput(value)),
     weightKg,
-    setWeightKg,
+    setWeightKg: (value: string) => setWeightKg(sanitizeMetricInput(value)),
     sexOptions,
     activityLevel,
     setActivityLevel,
@@ -322,5 +383,27 @@ export const useProfileOnboardingLogic = (profileId: string) => {
     handleBack,
     handleSkip,
     handleComplete,
+    normalizeMetricInput,
   };
+};
+const sanitizeMetricInput = (value: string) => {
+  let cleaned = value.replace(/[^0-9.,]/g, '');
+  cleaned = cleaned.replace(/,/g, '.');
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    cleaned = `${parts[0]}.${parts.slice(1).join('')}`;
+  }
+  return cleaned;
+};
+
+const normalizeMetricInput = (value: string) => {
+  const cleaned = value.replace(/,/g, '.');
+  const parts = cleaned.split('.');
+  if (parts.length === 1) {
+    return cleaned;
+  }
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    return `${parts[0]}.${parts[1]}`;
+  }
+  return parts[0];
 };

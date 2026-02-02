@@ -7,8 +7,7 @@ export const routes = {
     profileOnboarding: 'ProfileOnboarding',
   },
   main: {
-    plan: 'Plan',
-    track: 'Track',
+    plan: 'Log',
     recipes: 'Recipes',
     grocery: 'Grocery',
     water: 'Water',

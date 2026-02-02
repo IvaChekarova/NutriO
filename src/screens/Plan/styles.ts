@@ -29,6 +29,10 @@ export const createStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
+    headerActions: {
+      alignItems: 'flex-end',
+      gap: 8,
+    },
     dateNav: {
       flexDirection: 'row',
       gap: 10,
@@ -45,39 +49,56 @@ export const createStyles = (theme: Theme) =>
       fontSize: 16,
       color: theme.colors.textPrimary,
     },
+    resetButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.textSecondary,
+      backgroundColor: theme.colors.surface,
+    },
+    resetButtonText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: theme.colors.textSecondary,
+    },
     summaryCard: {
       backgroundColor: theme.colors.surface,
       borderRadius: 20,
       padding: 18,
       marginBottom: 20,
     },
-    summaryGrid: {
+    summaryRingRow: {
+      marginTop: 16,
       flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginTop: 12,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 20,
+    },
+    legend: {
+      flex: 1,
       gap: 12,
     },
-    summaryItem: {
-      width: '47%',
-      padding: 12,
-      borderRadius: 14,
-      backgroundColor: '#FFFFFF',
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
     },
-    summaryValue: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: theme.colors.textPrimary,
+    legendDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 999,
     },
-    summaryUnit: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-    summaryLabel: {
-      marginTop: 6,
+    legendLabel: {
       fontSize: 12,
       textTransform: 'uppercase',
       letterSpacing: 0.5,
       color: theme.colors.textSecondary,
+    },
+    legendValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: theme.colors.textPrimary,
     },
     sectionHeaderRow: {
       flexDirection: 'row',
@@ -110,7 +131,7 @@ export const createStyles = (theme: Theme) =>
     mealHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       marginBottom: 10,
     },
     mealTitle: {
@@ -120,6 +141,32 @@ export const createStyles = (theme: Theme) =>
     },
     mealTotal: {
       fontSize: 12,
+      color: theme.colors.textSecondary,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+    macroChips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 6,
+    },
+    macroChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 999,
+      backgroundColor: theme.colors.background,
+    },
+    macroDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 999,
+    },
+    macroChipText: {
+      fontSize: 11,
       color: theme.colors.textSecondary,
     },
     mealItems: {
@@ -138,12 +185,24 @@ export const createStyles = (theme: Theme) =>
       fontSize: 12,
       color: theme.colors.textSecondary,
     },
+    swipeAction: {
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+      alignSelf: 'stretch',
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+    },
+    swipeActionText: {
+      color: '#C44536',
+      fontSize: 13,
+      fontWeight: '700',
+    },
     mealAddRow: {
       marginTop: 12,
       paddingVertical: 10,
       alignItems: 'center',
       borderRadius: 12,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.background,
     },
     mealAddText: {
       fontSize: 13,

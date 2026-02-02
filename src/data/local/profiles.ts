@@ -84,3 +84,39 @@ export const getProfileByEmail = async (email: string) => {
     display_name: string | null;
   };
 };
+
+export const getProfileById = async (id: string) => {
+  const db = await getDatabase();
+  const [result] = await db.executeSql(
+    `SELECT id,
+            email,
+            display_name,
+            diet_tags,
+            height_cm,
+            weight_kg,
+            age,
+            sex,
+            activity_level,
+            goal
+     FROM ${schema.tables.profiles}
+     WHERE id = ? LIMIT 1;`,
+    [id],
+  );
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  return result.rows.item(0) as {
+    id: string;
+    email: string | null;
+    display_name: string | null;
+    diet_tags: string | null;
+    height_cm: number | null;
+    weight_kg: number | null;
+    age: number | null;
+    sex: string | null;
+    activity_level: string | null;
+    goal: string | null;
+  };
+};

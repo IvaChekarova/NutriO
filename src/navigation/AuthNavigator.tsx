@@ -24,7 +24,10 @@ const AuthNavigator = () => {
       initialRouteName={routes.auth.onboarding}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name={routes.auth.onboarding} component={OnboardingScreen} />
+      <Stack.Screen
+        name={routes.auth.onboarding}
+        component={OnboardingScreen}
+      />
       <Stack.Screen name={routes.auth.register} component={RegisterScreen} />
       <Stack.Screen name={routes.auth.login} component={LoginScreen} />
       <Stack.Screen

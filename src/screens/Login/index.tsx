@@ -44,7 +44,8 @@ const LoginScreen = () => {
           <View style={styles.header}>
             <Text style={styles.title}>Welcome back</Text>
             <Text style={styles.subtitle}>
-              Sign in to keep your nutrition plan, recipes, and tracking in one place.
+              Sign in to keep your nutrition plan, recipes, and tracking in one
+              place.
             </Text>
           </View>
 

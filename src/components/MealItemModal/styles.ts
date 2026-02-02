@@ -9,6 +9,9 @@ export const createStyles = (theme: Theme) =>
       backgroundColor: 'rgba(0, 0, 0, 0.4)',
       justifyContent: 'flex-end',
     },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
     sheet: {
       backgroundColor: theme.colors.background,
       borderTopLeftRadius: 24,
@@ -43,12 +46,64 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.textSecondary,
       marginBottom: 6,
     },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: theme.colors.textPrimary,
+      marginBottom: 6,
+    },
+    customButton: {
+      marginBottom: 14,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.primary,
+      backgroundColor: '#FFFFFF',
+    },
+    customButtonText: {
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
     input: {
       borderRadius: 14,
       backgroundColor: theme.colors.surface,
       paddingHorizontal: 14,
       paddingVertical: 12,
       fontSize: 15,
+      color: theme.colors.textPrimary,
+    },
+    inputDisabled: {
+      opacity: 0.6,
+    },
+    checkboxRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 6,
+    },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.textSecondary,
+      backgroundColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxChecked: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    checkboxTick: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#FFFFFF',
+    },
+    checkboxLabel: {
+      fontSize: 13,
       color: theme.colors.textPrimary,
     },
     row: {
@@ -88,10 +143,59 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.accent,
       marginTop: 4,
     },
+    results: {
+      marginTop: 10,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: theme.colors.surface,
+      overflow: 'hidden',
+      maxHeight: 240,
+    },
+    linkButton: {
+      alignSelf: 'flex-start',
+      marginBottom: 12,
+    },
+    linkButtonText: {
+      color: theme.colors.primary,
+      fontWeight: '700',
+    },
+    resultRow: {
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    resultName: {
+      fontSize: 14,
+      color: theme.colors.textPrimary,
+    },
+    resultMeta: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+    },
     footer: {
       marginTop: 16,
       flexDirection: 'row',
       gap: 12,
+    },
+    customOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.35)',
+      justifyContent: 'center',
+      paddingHorizontal: 20,
+    },
+    customBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    customSheet: {
+      backgroundColor: theme.colors.background,
+      borderRadius: 20,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 24,
     },
     button: {
       flex: 1,
