@@ -63,7 +63,7 @@ const ProfileOnboardingScreen = () => {
     handleBack,
     handleComplete,
     normalizeMetricInput,
-  } = useProfileOnboardingLogic(route.params.profileId);
+  } = useProfileOnboardingLogic(route.params?.profileId ?? '');
 
   const step = steps[stepIndex];
   const [showDatePicker, setShowDatePicker] = React.useState(false);

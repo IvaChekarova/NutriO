@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { routes } from '../../navigation/routes';
 import { useRegisterLogic } from './logic';
 import { createStyles } from './styles';
@@ -20,7 +22,8 @@ import { createStyles } from './styles';
 const RegisterScreen = () => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const {
     fullName,
     setFullName,

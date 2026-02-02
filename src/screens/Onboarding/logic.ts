@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, ImageSourcePropType } from 'react-native';
+import { FlatList, ImageSourcePropType, ViewToken } from 'react-native';
 
 import { images } from '../../assets/images';
 
@@ -47,7 +47,7 @@ export const useOnboardingLogic = () => {
   }, [activeIndex, data.length]);
 
   const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: Array<{ index?: number }> }) => {
+    ({ viewableItems }: { viewableItems: ViewToken<OnboardingItem>[] }) => {
       const index = viewableItems[0]?.index ?? 0;
       setActiveIndex(index);
     },

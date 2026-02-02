@@ -121,7 +121,13 @@ export const usePlanLogic = () => {
         heightCm: profile.height_cm ?? undefined,
         age: profile.age ?? undefined,
         sex: (profile.sex as 'male' | 'female' | 'na' | null) ?? undefined,
-        activityLevel: profile.activity_level ?? undefined,
+        activityLevel:
+          (profile.activity_level as
+            | 'sedentary'
+            | 'light'
+            | 'moderate'
+            | 'active'
+            | null) ?? undefined,
         goalText: profile.goal ?? undefined,
       });
       setCalorieGoal(result?.target ?? null);
@@ -308,9 +314,12 @@ export const usePlanLogic = () => {
       return;
     }
 
-    return subscribeMealPlanChange(() => {
+    const unsubscribe = subscribeMealPlanChange(() => {
       refreshItems();
     });
+    return () => {
+      unsubscribe();
+    };
   }, [planId, refreshItems]);
 
   const openAddModal = (mealType: string) => {

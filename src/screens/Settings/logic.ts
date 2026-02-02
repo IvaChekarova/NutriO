@@ -78,7 +78,13 @@ export const useSettingsLogic = () => {
         heightCm: details.heightCm ?? undefined,
         age: details.age ?? undefined,
         sex: (details.sex as 'male' | 'female' | 'na' | null) ?? undefined,
-        activityLevel: details.activityLevel ?? undefined,
+        activityLevel:
+          (details.activityLevel as
+            | 'sedentary'
+            | 'light'
+            | 'moderate'
+            | 'active'
+            | null) ?? undefined,
         goalText: details.goal ?? undefined,
       });
       setCalorieGoal(calories?.target ?? null);
@@ -113,8 +119,8 @@ export const useSettingsLogic = () => {
       height: profile?.heightCm ? `${profile.heightCm} cm` : '—',
       weight: profile?.weightKg ? `${profile.weightKg} kg` : '—',
       age: profile?.age ? `${profile.age}` : '—',
-      sex: formatValue(profile?.sex),
-      activity: formatValue(profile?.activityLevel),
+      sex: formatValue(profile?.sex ?? null),
+      activity: formatValue(profile?.activityLevel ?? null),
       goal: formatList(profile?.goal ?? null),
       dietTags: formatList(profile?.dietTags ?? null),
     }),

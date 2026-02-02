@@ -8,17 +8,20 @@ import {
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../theme';
 import { routes } from '../../navigation/routes';
+import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useOnboardingLogic } from './logic';
 import { createStyles } from './styles';
 
 const OnboardingScreen = () => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { width } = useWindowDimensions();
   const { data, listRef, activeIndex, handleNext, onViewableItemsChanged } =
     useOnboardingLogic();

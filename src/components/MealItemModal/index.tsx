@@ -63,10 +63,7 @@ const MealItemModal = ({
   } = useMealItemModal({ visible, initialValues, onClose, onSave });
 
   const isLockedItem = form.itemType !== 'manual';
-  const showServingUnit = Boolean(baseNutrition?.hasServing);
   const availableUnits = SERVING_UNITS;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const customUnits = SERVING_UNITS.filter(unit => unit.id !== 'serving');
 
   return (
     <>

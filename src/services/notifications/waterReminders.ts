@@ -54,7 +54,6 @@ export const requestWaterPermission = async () => {
   return [
     AuthorizationStatus.AUTHORIZED,
     AuthorizationStatus.PROVISIONAL,
-    AuthorizationStatus.EPHEMERAL,
   ].includes(settings.authorizationStatus);
 };
 

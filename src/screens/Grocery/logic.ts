@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-void */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { getGroceryListForRange, getSession } from '../../data';
@@ -210,56 +212,59 @@ export const useGroceryLogic = () => {
   const [rangeOption, setRangeOption] = useState<'today' | 'next3' | 'week'>(
     'week',
   );
-  const refreshList = async (rangeStart: Date, rangeEnd: Date, key: string) => {
-    if (!profileId) {
-      return null;
-    }
-    setIsLoading(true);
-    const results = await getGroceryListForRange(rangeStart, rangeEnd);
-    const signature = signatureFromItems(results);
-    const storedSignature = await AsyncStorage.getItem(
-      `grocery.signature.${profileId}.${key}`,
-    );
-    const storedChecked = await AsyncStorage.getItem(
-      `grocery.checked.${profileId}.${key}`,
-    );
-    if (completedRanges.has(key)) {
-      if (!storedSignature || storedSignature !== signature) {
-        const nextCompleted = new Set(completedRanges);
-        nextCompleted.delete(key);
-        setCompletedRanges(nextCompleted);
-        AsyncStorage.setItem(
-          `grocery.completedRanges.${profileId}`,
-          JSON.stringify(Array.from(nextCompleted)),
-        ).catch(() => undefined);
-      } else {
-        setIsLoading(false);
-        return;
+  const refreshList = useCallback(
+    async (rangeStart: Date, rangeEnd: Date, key: string) => {
+      if (!profileId) {
+        return null;
       }
-    }
-    setItems(
-      results.map(item => ({
-        id: `${item.name}_${item.unit}`,
-        name: item.name,
-        amount: item.amount,
-        unit: item.unit,
-        usages: item.usages,
-      })),
-    );
-    if (storedChecked) {
-      setCheckedItems(new Set(JSON.parse(storedChecked) as string[]));
-    } else {
-      setCheckedItems(new Set());
-    }
-    setCurrentSignature(signature);
-    setCheckedRangeKey(key);
-    setPantryItems(new Set());
-    setExpandedItems(new Set());
-    setCollapsedCategories(new Set(CATEGORY_ORDER));
-    setManualItems([]);
-    setIsLoading(false);
-    return { signature, storedSignature };
-  };
+      setIsLoading(true);
+      const results = await getGroceryListForRange(rangeStart, rangeEnd);
+      const signature = signatureFromItems(results);
+      const storedSignature = await AsyncStorage.getItem(
+        `grocery.signature.${profileId}.${key}`,
+      );
+      const storedChecked = await AsyncStorage.getItem(
+        `grocery.checked.${profileId}.${key}`,
+      );
+      if (completedRanges.has(key)) {
+        if (!storedSignature || storedSignature !== signature) {
+          const nextCompleted = new Set(completedRanges);
+          nextCompleted.delete(key);
+          setCompletedRanges(nextCompleted);
+          AsyncStorage.setItem(
+            `grocery.completedRanges.${profileId}`,
+            JSON.stringify(Array.from(nextCompleted)),
+          ).catch(() => undefined);
+        } else {
+          setIsLoading(false);
+          return;
+        }
+      }
+      setItems(
+        results.map(item => ({
+          id: `${item.name}_${item.unit}`,
+          name: item.name,
+          amount: item.amount,
+          unit: item.unit,
+          usages: item.usages,
+        })),
+      );
+      if (storedChecked) {
+        setCheckedItems(new Set(JSON.parse(storedChecked) as string[]));
+      } else {
+        setCheckedItems(new Set());
+      }
+      setCurrentSignature(signature);
+      setCheckedRangeKey(key);
+      setPantryItems(new Set());
+      setExpandedItems(new Set());
+      setCollapsedCategories(new Set(CATEGORY_ORDER));
+      setManualItems([]);
+      setIsLoading(false);
+      return { signature, storedSignature };
+    },
+    [completedRanges, profileId],
+  );
 
   const range = useMemo(() => {
     const start = new Date();
@@ -317,23 +322,23 @@ export const useGroceryLogic = () => {
 
   useEffect(() => {
     if (!profileId) {
-      return () => undefined;
+      return;
     }
-    return subscribeMealPlanChange(() => {
+    const unsubscribe = subscribeMealPlanChange(() => {
       void refreshList(range.start, range.end, rangeKey);
     });
-  }, [profileId, range.end, range.start, rangeKey, completedRanges]);
+    return () => {
+      unsubscribe();
+    };
+  }, [profileId, range.end, range.start, rangeKey, refreshList]);
 
   useFocusEffect(
-    useMemo(
-      () => () => {
-        if (!profileId) {
-          return;
-        }
-        void refreshList(range.start, range.end, rangeKey);
-      },
-      [profileId, range.end, range.start, rangeKey, completedRanges],
-    ),
+    useCallback(() => {
+      if (!profileId) {
+        return;
+      }
+      void refreshList(range.start, range.end, rangeKey);
+    }, [profileId, range.end, range.start, rangeKey, refreshList]),
   );
 
   useEffect(() => {
@@ -358,7 +363,7 @@ export const useGroceryLogic = () => {
     return () => {
       isActive = false;
     };
-  }, [completedRanges, profileId, range, rangeKey]);
+  }, [completedRanges, profileId, range, rangeKey, refreshList]);
 
   useEffect(() => {
     if (!profileId || checkedRangeKey !== rangeKey || isLoading) {

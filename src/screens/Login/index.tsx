@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useTheme } from '../../theme';
+import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { routes } from '../../navigation/routes';
 import { useLoginLogic } from './logic';
 import { createStyles } from './styles';
@@ -19,7 +21,8 @@ import { createStyles } from './styles';
 const LoginScreen = () => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const {
     email,
     setEmail,
